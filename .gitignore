@@ -1,0 +1,24 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Node
+node_modules/
+dist/
+
+# Temporary files
+temp_audio/
+temp_reports/
+
+# IDE
+.vscode/
+.idea/
+
+# Local database
+backend/users.db

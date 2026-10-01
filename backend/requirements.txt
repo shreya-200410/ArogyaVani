@@ -1,0 +1,11 @@
+﻿# Direct backend dependencies (Python 3.11 recommended)
+bcrypt==5.0.0
+easyocr==1.7.2
+fastapi==0.142.2
+groq==1.7.0
+pinecone==10.0.0
+pydantic==2.13.5
+PyJWT==2.15.1
+python-dotenv==1.2.3
+python-multipart==0.0.32
+uvicorn[standard]==0.54.0

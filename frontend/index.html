@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <meta
+    name="description"
+    content="Multilingual voice-first healthcare information assistant"
+  />
+
+  <title>ArogyaVani AI</title>
+
+  <!-- ✅ Add manifest link -->
+  <link rel="manifest" href="/manifest.webmanifest" />
+
+  <!-- ✅ Add favicon/icon if available -->
+  <link rel="icon" href="/icon.png" type="image/png" />
+</head>
+
+<body>
+  <div id="root"></div>
+
+  <!-- ✅ React entry point -->
+  <script type="module" src="/src/main.jsx"></script>
+
+  <!-- ✅ Service Worker registration -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker
+          .register('/service-worker.js')
+          .then(reg => console.log('Service Worker registered:', reg))
+          .catch(err => console.error('Service Worker registration failed:', err));
+      });
+    }
+  </script>
+</body>
+
+</html>
