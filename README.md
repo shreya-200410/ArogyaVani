@@ -2,14 +2,14 @@
 
 ArogyaVani is a multilingual healthcare information assistant. Users can ask questions in English, Hindi, or Marathi, dictate questions, and upload medical report images for text extraction and explanation.
 
-The app has a React and Vite frontend and a FastAPI backend. Chat answers use retrieved medical reference text from Pinecone and Groq generation. The backend also provides account registration and login with SQLite storage, Groq speech transcription, and English OCR through EasyOCR. The browser provides answer read-aloud using its built-in speech synthesis.
+The app has a React and Vite frontend and a FastAPI backend. Chat answers use retrieved medical reference text from Pinecone and Groq generation. The backend also provides account registration and login with SQLite storage, speech transcription with Groq Whisper, and report image OCR with Groq's Qwen 3.8 27B vision model. The browser provides answer read-aloud using its built-in speech synthesis.
 
 ## Features
 
 - Healthcare Q&A in English, Hindi, and Marathi.
 - Retrieval-augmented answers from the documents in `data/medical/`.
 - Speech-to-text with Groq Whisper.
-- Image report text extraction with EasyOCR.
+- Medical report image text extraction with Groq vision (`qwen/qwen3.8-27b`).
 - Browser-based answer read-aloud.
 - Registration and login, backed by SQLite and JWT tokens.
 - Chat history and processed report records saved in browser local storage.
@@ -22,7 +22,7 @@ The app has a React and Vite frontend and a FastAPI backend. Chat answers use re
 - A Groq API key.
 - A Pinecone account and API key.
 
-The first EasyOCR run may download its model files. Chat, speech transcription, and Pinecone retrieval need internet access and configured provider credentials.
+Chat, speech transcription, report OCR, and Pinecone retrieval need internet access and configured provider credentials. Report images are limited to 20 MB and are sent to Groq for OCR processing.
 
 ## Configure the backend
 
@@ -54,6 +54,7 @@ Edit `backend/.env` and set:
 
 ```dotenv
 GROQ_API_KEY=your-groq-api-key
+GROQ_VISION_MODEL=qwen/qwen3.8-27b
 PINECONE_API_KEY=your-pinecone-api-key
 PINECONE_INDEX_NAME=multilingual-health-assistant
 JWT_SECRET_KEY=replace-with-a-long-random-secret
@@ -61,7 +62,7 @@ PINECONE_CLOUD=aws
 PINECONE_REGION=us-east-1
 ```
 
-Generate a JWT secret with `python -c "import secrets; print(secrets.token_urlsafe(48))"`. `GROQ_STT_MODEL` is optional; it defaults to `whisper-large-v3-turbo`.
+Generate a JWT secret with `python -c "import secrets; print(secrets.token_urlsafe(48))"`. `GROQ_STT_MODEL` and `GROQ_VISION_MODEL` are optional; they default to `whisper-large-v3-turbo` and `qwen/qwen3.8-27b` respectively.
 
 Create the Pinecone index and upload the medical reference documents. Run these commands from the `backend` directory:
 
@@ -122,4 +123,4 @@ frontend/       React and Vite user interface
 
 ArogyaVani provides general health information; it does not diagnose conditions or prescribe treatment. For urgent symptoms, seek emergency care. Consult a qualified healthcare professional for personal medical advice.
 
-Chat history and extracted report text are stored in the current browser's local storage. Account records are stored in the local SQLite database. Uploaded report and audio files are written to temporary backend folders for processing and removed afterward. Do not commit `.env` files or API keys.
+Chat history and extracted report text are stored in the current browser's local storage. Account records are stored in the local SQLite database. Audio uploads are temporarily written to the backend and removed after transcription. Report images are sent to Groq for OCR and are not saved to disk by the backend. Do not upload sensitive records unless you are comfortable sending them to the configured Groq account, and do not commit `.env` files or API keys.

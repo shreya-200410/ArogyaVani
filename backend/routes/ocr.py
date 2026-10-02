@@ -1,7 +1,3 @@
-import os
-import shutil
-import uuid
-
 from fastapi import (
     APIRouter,
     UploadFile,
@@ -19,56 +15,41 @@ router = APIRouter(
     tags=["OCR"]
 )
 
+MAX_IMAGE_BYTES = 20 * 1024 * 1024
+ALLOWED_IMAGE_TYPES = {
+    "image/jpeg",
+    "image/jpg",
+    "image/png",
+    "image/webp"
+}
+
 
 @router.post("/report")
 async def upload_report(
     file: UploadFile = File(...)
 ):
 
-    allowed_types = {
-    "image/jpeg",
-    "image/png",
-    "image/jpg",
-    "image/webp"
-}
+    content_type = (file.content_type or "").split(";")[0].lower()
 
-    if file.content_type not in allowed_types:
+    if content_type not in ALLOWED_IMAGE_TYPES:
 
         raise HTTPException(
             status_code=400,
-            detail="Only JPG and PNG images are supported."
+            detail="Upload a JPG, PNG, or WEBP image."
         )
 
-    os.makedirs(
-        "temp_reports",
-        exist_ok=True
-    )
+    image_bytes = await file.read(MAX_IMAGE_BYTES + 1)
 
-    extension = os.path.splitext(
-        file.filename or ""
-    )[1]
-
-    filename = (
-        f"report_{uuid.uuid4().hex}"
-        f"{extension}"
-    )
-
-    path = os.path.join(
-        "temp_reports",
-        filename
-    )
+    if len(image_bytes) > MAX_IMAGE_BYTES:
+        raise HTTPException(
+            status_code=413,
+            detail="The report image must be 20 MB or smaller."
+        )
 
     try:
-
-        with open(path, "wb") as buffer:
-
-            shutil.copyfileobj(
-                file.file,
-                buffer
-            )
-
-        extracted_text = (
-            extract_text_from_image(path)
+        extracted_text = extract_text_from_image(
+            image_bytes,
+            content_type
         )
 
         return {
@@ -76,14 +57,9 @@ async def upload_report(
             "extracted_text": extracted_text
         }
 
-    except Exception as e:
-
+    except Exception as error:
+        # Avoid returning provider internals or submitted medical data to the client.
         raise HTTPException(
-            status_code=500,
-            detail=str(e)
-        )
-
-    finally:
-
-        if os.path.exists(path):
-            os.remove(path)
+            status_code=502,
+            detail="Groq could not process this report image. Check the API key, model access, and try again."
+        ) from error
